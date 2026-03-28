@@ -46,7 +46,7 @@ def get_pr_diff(owner, repo, pr_number):
 
     diff_headers = {
         "Authorization": f"token {GITHUB_TOKEN}",
-        "Accept": "application/vnd.github.v3+json"
+        "Accept": "application/vnd.github.v3.diff"
     }
     # Build the URL for a specific PR using its number
     url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
@@ -54,7 +54,7 @@ def get_pr_diff(owner, repo, pr_number):
     # Make the request
     response = requests.get(url, headers=diff_headers)
 
-    # Check if the request failed
+# Check if the request failed
     if response.status_code != 200:
         print(f"Error fetching diff: {response.status_code}")
         return None
