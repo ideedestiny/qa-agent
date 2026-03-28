@@ -8,8 +8,8 @@ load_dotenv()
 def main():
     print("QA Agent starting...")
 
-    owner = "microsoft"
-    repo = "vscode"
+    owner = "ideedestiny"
+    repo = "qa-agent-test"
 
     # Get list of open PRs
     print(f"Fetching open PRs for {owner}/{repo}...")

@@ -5,16 +5,13 @@ from openai import OpenAI
 
 
 # Load environment variables from .env file
-# This makes GITHUB_TOKEN available to os.getenv()
 load_dotenv()
 
 # Get the GitHub token from environment variables
-# Never hardcode tokens directly in code
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
 # Headers sent with every GitHub API request
-# Authorization proves who we are
-# Accept tells GitHub we want JSON back
+
 HEADERS = {
     "Authorization": f"token {GITHUB_TOKEN}",
     "Accept": "application/vnd.github.v3+json"
@@ -43,8 +40,6 @@ def get_open_prs(owner, repo):
 
 
 def get_pr_diff(owner, repo, pr_number):
-    # GitHub requires a special Accept header to get the raw diff format
-    # Without this header GitHub returns JSON instead of the actual diff text
 
     diff_headers = {
         "Authorization": f"token {GITHUB_TOKEN}",
@@ -73,7 +68,6 @@ def print_pr_summary(prs):
         return
 
     # Loop through each PR and print key details
-    # pr is a dictionary — pr['number'], pr['title'] etc are its keys
     for pr in prs:
         print(f"PR #{pr['number']}: {pr['title']}")
         print(f"  Author: {pr['user']['login']}")
@@ -115,3 +109,25 @@ def generate_tests_from_diff(diff):
     # Extract just the text from the response
     # The response object has nested structure — this navigates to the actual text
     return response.choices[0].message.content
+
+def post_pr_comment(owner, repo, pr_number):
+# This endpoint is for issues/PR comments
+    url = f"https://api.github.com/repos/{owner}/{repo}/issues/{pr_number}/comments"
+
+    # The body of our POST request
+    # We wrap the tests in markdown code blocks so they render nicely
+    payload = {
+        "body": f"## 🤖 QA Agent — Auto-generated Pytest Tests\n\n```python\n{comment_body}\n```"
+    }
+
+    # POST sends data to GitHub
+    response = requests.post(url, headers=HEADERS, json=payload)
+
+    # 201 means "created successfully" — different from 200
+    if response.status_code == 201:
+        print(f"Comment posted successfully!")
+        print(f"View it at: {response.json()['html_url']}")
+        return True
+    else:
+        print(f"Error posting comment: {response.status_code} - {response.text}")
+        return False
