@@ -40,6 +40,30 @@ def get_open_prs(owner, repo):
     return prs
 
 
+def get_pr_diff(owner, repo, pr_number):
+    # GitHub requires a special Accept header to get the raw diff format
+    # Without this header GitHub returns JSON instead of the actual diff text
+
+    diff_headers = {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json"
+    }
+    # Build the URL for a specific PR using its number
+    url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
+
+    # Make the request
+    response = requests.get(url, headers=diff_headers)
+
+    # Check if the request failed
+    if response.status_code != 200:
+        print(f"Error fetching diff: {response.status_code}")
+        return None
+
+        # Return the raw diff text
+        # This is plain text, not JSON, so we use .text not .json()
+    return response.text
+
+
 def print_pr_summary(prs):
     # Handle the case where no PRs were found
     if not prs:
