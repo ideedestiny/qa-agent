@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from agent import get_open_prs, print_pr_summary, get_pr_diff
+from agent import get_open_prs, print_pr_summary, get_pr_diff,generate_tests_from_diff
 
 load_dotenv()
 
@@ -11,13 +11,13 @@ def main():
     owner = "microsoft"
     repo = "vscode"
 
-    # Step 1: Get list of open PRs
+    # Get list of open PRs
     print(f"Fetching open PRs for {owner}/{repo}...")
     prs = get_open_prs(owner, repo)
     print_pr_summary(prs)
 
-    # Step 2: Fetch the diff for the first PR in the list
-    # We grab its number to use in the diff request
+    # Fetch the diff for the first PR in the list
+    # grab its number to use in the diff request
     if prs:
         first_pr = prs[0]
         pr_number = first_pr['number']
@@ -31,6 +31,14 @@ def main():
             print("\n--- DIFF PREVIEW ---")
             print(diff[:500])
             print("\n--- END PREVIEW ---")
+
+        # Send the diff to the LLM and generate tests
+            print("\nGenerating Pytest tests...")
+            tests = generate_tests_from_diff(diff)
+
+            print("\n--- GENERATED TESTS ---")
+            print(tests)
+            print("--- END TESTS ---")
 
 
 if __name__ == "__main__":

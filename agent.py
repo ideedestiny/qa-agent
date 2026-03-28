@@ -1,6 +1,8 @@
 import os
 import requests
 from dotenv import load_dotenv
+from openai import OpenAI
+
 
 # Load environment variables from .env file
 # This makes GITHUB_TOKEN available to os.getenv()
@@ -77,3 +79,39 @@ def print_pr_summary(prs):
         print(f"  Author: {pr['user']['login']}")
         print(f"  URL: {pr['html_url']}")
         print()
+
+
+def generate_tests_from_diff(diff):
+    # Initialize the OpenAI client
+    # It automatically reads OPENAI_API_KEY from your environment
+    client = OpenAI()
+    # This is the prompt — instructions we give the LLM
+    # We tell it exactly what role to play and what to produce
+    prompt = f"""You are a senior QA engineer. 
+    A developer has submitted the following code diff for review.
+    Your job is to write Pytest test cases that verify the changed code works correctly.
+
+    Rules:
+    - Write only Pytest test functions
+    - Each test must have a clear name describing what it tests
+    - Add a one line comment above each test explaining why it matters
+    - Do not explain anything, just write the tests
+
+    Here is the diff:
+    {diff}
+    """
+    # Send the prompt to the LLM and get a response
+    # model: which AI model to use
+    # messages: the conversation — "user" is us, "assistant" will be the LLM
+    # max_tokens: maximum length of the response
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "user", "content": prompt}
+        ],
+        max_tokens=1000
+    )
+
+    # Extract just the text from the response
+    # The response object has nested structure — this navigates to the actual text
+    return response.choices[0].message.content
