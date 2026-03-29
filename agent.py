@@ -149,3 +149,18 @@ def already_commented(owner, repo, pr_number):
     return False
 
 
+def save_tests_to_file(pr_number, tests):
+    # Create a tests directory if it doesn't exist
+    # exist_ok=True means don't throw an error if it already exists
+    os.makedirs("generated_tests", exist_ok=True)
+
+    # Name the file after the PR number so it's easy to trace back
+    filename = f"generated_tests/test_pr_{pr_number}.py"
+
+    with open(filename, "w") as f:
+        f.write(tests)
+
+    print(f"  Tests saved to {filename}")
+    return filename
+
+

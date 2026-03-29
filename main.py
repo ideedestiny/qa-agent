@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from agent import get_open_prs, print_pr_summary, get_pr_diff,generate_tests_from_diff,post_pr_comment, already_commented
+from agent import get_open_prs, print_pr_summary, get_pr_diff,generate_tests_from_diff,post_pr_comment, already_commented, save_tests_to_file
 
 load_dotenv()
 
@@ -41,6 +41,7 @@ def main():
         # Generate tests
         print(f"  Generating tests...")
         tests = generate_tests_from_diff(diff)
+        save_tests_to_file(pr_number, tests)
 
         # Post comment
         print(f"  Posting comment...")
@@ -50,6 +51,8 @@ def main():
             print(f"  Done.\n")
         else:
             print(f"  Failed to post comment.\n")
+
+
 
 
 
