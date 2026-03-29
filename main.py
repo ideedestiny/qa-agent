@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from agent import get_open_prs, print_pr_summary, get_pr_diff,generate_tests_from_diff
+from agent import get_open_prs, print_pr_summary, get_pr_diff,generate_tests_from_diff,post_pr_comment
 
 load_dotenv()
 
@@ -39,6 +39,12 @@ def main():
             print("\n--- GENERATED TESTS ---")
             print(tests)
             print("--- END TESTS ---")
+
+            print(f"\nPosting comment to PR #{pr_number}...")
+            print(f"Tests content length: {len(tests)}")
+            print(f"First 100 chars: {tests[:100]}")
+            post_pr_comment(owner, repo, pr_number, tests)
+
 
 
 if __name__ == "__main__":

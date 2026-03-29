@@ -110,7 +110,7 @@ def generate_tests_from_diff(diff):
     # The response object has nested structure — this navigates to the actual text
     return response.choices[0].message.content
 
-def post_pr_comment(owner, repo, pr_number):
+def post_pr_comment(owner, repo, pr_number, comment_body):
 # This endpoint is for issues/PR comments
     url = f"https://api.github.com/repos/{owner}/{repo}/issues/{pr_number}/comments"
 
