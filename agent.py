@@ -20,8 +20,8 @@ HEADERS = {
 
 def get_open_prs(owner, repo):
     # Build the GitHub API URL for listing pull requests
-    # owner = the GitHub username or org (e.g. "microsoft")
-    # repo = the repository name (e.g. "vscode")
+    # owner = the GitHub username or org
+    # repo = the repository name
     url = f"https://api.github.com/repos/{owner}/{repo}/pulls"
 
     # Make the GET request to GitHub
@@ -131,3 +131,21 @@ def post_pr_comment(owner, repo, pr_number, comment_body):
     else:
         print(f"Error posting comment: {response.status_code} - {response.text}")
         return False
+
+def already_commented(owner, repo, pr_number):
+    # Fetch all existing comments on this PR
+    url = f"https://api.github.com/repos/{owner}/{repo}/issues/{pr_number}/comments"
+    response = requests.get(url, headers=HEADERS)
+
+    if response.status_code != 200:
+        return False
+
+    comments = response.json()
+    # Check if any existing comment was posted by us and contains our signature
+    for comment in comments:
+        if "QA Agent" in comment['body']:
+            return True
+
+    return False
+
+

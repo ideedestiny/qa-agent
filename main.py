@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from agent import get_open_prs, print_pr_summary, get_pr_diff,generate_tests_from_diff,post_pr_comment
+from agent import get_open_prs, print_pr_summary, get_pr_diff,generate_tests_from_diff,post_pr_comment, already_commented
 
 load_dotenv()
 
@@ -14,36 +14,42 @@ def main():
     # Get list of open PRs
     print(f"Fetching open PRs for {owner}/{repo}...")
     prs = get_open_prs(owner, repo)
-    print_pr_summary(prs)
 
-    # Fetch the diff for the first PR in the list
-    # grab its number to use in the diff request
-    if prs:
-        first_pr = prs[0]
-        pr_number = first_pr['number']
-        pr_title = first_pr['title']
+    if not prs:
+        print("No open PRs found.")
+        return
 
-        print(f"\nFetching diff for PR #{pr_number}: {pr_title}")
+    print(f"Found {len(prs)} open PR(s).\n")
+
+    # Process every open PR, not just the first one
+    for pr in prs:
+        pr_number = pr['number']
+        pr_title = pr['title']
+        print(f"Processing PR #{pr_number}: {pr_title}")
+
+        # Skip if we already commented on this PR
+        if already_commented(owner, repo, pr_number):
+            print(f"  Already commented. Skipping.\n")
+            continue
+
+        # Fetch the diff
         diff = get_pr_diff(owner, repo, pr_number)
+        if not diff:
+            print(f"  Could not fetch diff. Skipping.\n")
+            continue
 
-        if diff:
-            # Print only the first 500 characters so it doesn't flood the terminal
-            print("\n--- DIFF PREVIEW ---")
-            print(diff[:500])
-            print("\n--- END PREVIEW ---")
+        # Generate tests
+        print(f"  Generating tests...")
+        tests = generate_tests_from_diff(diff)
 
-        # Send the diff to the LLM and generate tests
-            print("\nGenerating Pytest tests...")
-            tests = generate_tests_from_diff(diff)
+        # Post comment
+        print(f"  Posting comment...")
+        success = post_pr_comment(owner, repo, pr_number, tests)
 
-            print("\n--- GENERATED TESTS ---")
-            print(tests)
-            print("--- END TESTS ---")
-
-            print(f"\nPosting comment to PR #{pr_number}...")
-            print(f"Tests content length: {len(tests)}")
-            print(f"First 100 chars: {tests[:100]}")
-            post_pr_comment(owner, repo, pr_number, tests)
+        if success:
+            print(f"  Done.\n")
+        else:
+            print(f"  Failed to post comment.\n")
 
 
 
