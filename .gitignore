@@ -5,6 +5,15 @@ build/
 dist/
 wheels/
 *.egg-info
+
+# IDE
 .idea/
+
 # Virtual environments
 .venv
+
+# Secrets
+.env
+
+# Agent output
+generated_tests/
