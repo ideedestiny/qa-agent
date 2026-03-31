@@ -81,23 +81,23 @@ def generate_tests_from_diff(diff):
     client = OpenAI()
     # This is the prompt — instructions we give the LLM
     # We tell it exactly what role to play and what to produce
-    prompt = f"""You are a senior QA engineer. 
-    A developer has submitted the following code diff for review.
-    Your job is to write Pytest test cases that verify the changed code works correctly.
+    prompt = f"""You are a senior QA engineer reviewing a pull request.
+
+    Analyze this diff and write Pytest tests for the changed code.
 
     Rules:
-    - Write only Pytest test functions
-    - Each test must have a clear name describing what it tests
-    - Add a one line comment above each test explaining why it matters
-    - Do not explain anything, just write the tests
+    - Only use Python standard library — no external imports except pytest
+    - Write self-contained tests that do not import from the changed codebase
+    - Test the logic and behaviour described in the diff, not the implementation
+    - Use simple assertions — no mocks unless absolutely necessary
+    - Each test function must start with test_
+    - Return ONLY the Python code. No explanation, no intro text, no markdown backticks.
+    - Add one comment per test explaining what it verifies
+    - Define any function you are testing directly inside the test file — do not import it
 
-    Here is the diff:
+    Diff:
     {diff}
     """
-    # Send the prompt to the LLM and get a response
-    # model: which AI model to use
-    # messages: the conversation — "user" is us, "assistant" will be the LLM
-    # max_tokens: maximum length of the response
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
@@ -108,7 +108,19 @@ def generate_tests_from_diff(diff):
 
     # Extract just the text from the response
     # The response object has nested structure — this navigates to the actual text
-    return response.choices[0].message.content
+    # Strip markdown code blocks if LLM includes them despite instructions
+    tests = response.choices[0].message.content
+    tests = tests.replace("```python", "").replace("```", "").strip()
+
+    # Remove any lines before the first 'import' or 'def' — LLM preamble
+    lines = tests.split("\n")
+    for i, line in enumerate(lines):
+        if line.startswith("import") or line.startswith("def") or line.startswith("#"):
+            tests = "\n".join(lines[i:])
+            break
+
+    return tests
+
 
 def post_pr_comment(owner, repo, pr_number, comment_body):
 # This endpoint is for issues/PR comments
