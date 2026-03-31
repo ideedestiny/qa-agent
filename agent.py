@@ -40,26 +40,36 @@ def get_open_prs(owner, repo):
 
 
 def get_pr_diff(owner, repo, pr_number):
-
     diff_headers = {
         "Authorization": f"token {GITHUB_TOKEN}",
         "Accept": "application/vnd.github.v3.diff"
     }
-    # Build the URL for a specific PR using its number
-    url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
 
-    # Make the request
+    url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
     response = requests.get(url, headers=diff_headers)
 
-# Check if the request failed
+    # Check if the request failed
     if response.status_code != 200:
         print(f"Error fetching diff: {response.status_code}")
         return None
 
-        # Return the raw diff text
-        # This is plain text, not JSON, so we use .text not .json()
-    return response.text
+    # Reject diffs that are too large — protects against token overuse
+    if len(response.text) > 10000:
+        print("  Diff too large, truncating to 10000 characters.")
+        return response.text[:10000]
 
+
+    # Reject diffs with no meaningful content
+    if len(response.text.strip()) < 200:
+        print("  Diff too small — likely an empty or non-code change.")
+        return None
+
+    # Skip non-Python files — no point generating Pytest tests for markdown
+    if ".py" not in response.text:
+        print("  No Python files in diff. Skipping.")
+        return None
+
+    return response.text
 
 def print_pr_summary(prs):
     # Handle the case where no PRs were found
@@ -98,21 +108,27 @@ def generate_tests_from_diff(diff):
     Diff:
     {diff}
     """
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "user", "content": prompt}
-        ],
-        max_tokens=1000
-    )
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=1000
+        )
 
-    # Extract just the text from the response
-    # The response object has nested structure — this navigates to the actual text
-    # Strip markdown code blocks if LLM includes them despite instructions
-    tests = response.choices[0].message.content
-    tests = tests.replace("```python", "").replace("```", "").strip()
+        # Extract just the text from the response
+        # The response object has nested structure — this navigates to the actual text
+        # Strip markdown code blocks if LLM includes them despite instructions
+        tests = response.choices[0].message.content
+
+    except Exception as e:
+    # Catches any OpenAI API error — rate limits, timeouts, invalid requests
+        print(f"  LLM API error: {e}")
+        return None
 
     # Remove any lines before the first 'import' or 'def' — LLM preamble
+    tests = tests.replace("```python", "").replace("```", "").strip()
     lines = tests.split("\n")
     for i, line in enumerate(lines):
         if line.startswith("import") or line.startswith("def") or line.startswith("#"):

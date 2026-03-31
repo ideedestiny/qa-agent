@@ -42,6 +42,10 @@ def main():
         print(f"  Generating tests...")
         tests = generate_tests_from_diff(diff)
         save_tests_to_file(pr_number, tests)
+        # Skip if LLM returned nothing
+        if not tests:
+            print(f"  No tests generated. Skipping.\n")
+            continue
 
         # Post comment
         print(f"  Posting comment...")
