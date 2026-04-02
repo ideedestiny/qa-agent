@@ -17,3 +17,5 @@ wheels/
 
 # Agent output
 generated_tests/
+
+qa_agent.log
