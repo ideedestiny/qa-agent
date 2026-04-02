@@ -1,6 +1,4 @@
-\# QA Agent
-
-
+# QA Agent
 
 An agentic Python tool that watches GitHub repositories for new pull requests,
 
@@ -9,10 +7,7 @@ reads the code diff, and automatically generates Pytest test cases using an LLM.
 The generated tests are posted directly as a comment on the PR.
 
 
-
-\## What it does
-
-
+## What it does
 
 1\. Connects to the GitHub API and fetches open pull requests
 
@@ -29,10 +24,7 @@ The generated tests are posted directly as a comment on the PR.
 7\. Tracks which PRs have been processed to avoid duplicates
 
 
-
-\## Why this exists
-
-
+## Why this exists
 
 In regulated industries and high-velocity engineering teams, every code change
 
@@ -41,10 +33,7 @@ needs test coverage. This agent automates the first layer of that process —
 generating a test scaffold before a human reviewer even opens the PR.
 
 
-
-\## Tech stack
-
-
+## Tech stack
 
 \- Python 3.12
 
@@ -56,11 +45,7 @@ generating a test scaffold before a human reviewer even opens the PR.
 
 \- python-dotenv
 
-
-
-\## Setup
-
-
+## Setup
 
 1\. Clone the repo
 
