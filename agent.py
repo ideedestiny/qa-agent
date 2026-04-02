@@ -2,6 +2,7 @@ import os
 import requests
 from dotenv import load_dotenv
 from openai import OpenAI
+from config import LLM_MODEL, LLM_MAX_TOKENS, MAX_DIFF_SIZE, MIN_DIFF_SIZE
 
 
 # Load environment variables from .env file
@@ -54,13 +55,13 @@ def get_pr_diff(owner, repo, pr_number):
         return None
 
     # Reject diffs that are too large — protects against token overuse
-    if len(response.text) > 10000:
+    if len(response.text) > MAX_DIFF_SIZE:
         print("  Diff too large, truncating to 10000 characters.")
         return response.text[:10000]
 
 
     # Reject diffs with no meaningful content
-    if len(response.text.strip()) < 200:
+    if len(response.text.strip()) < MIN_DIFF_SIZE:
         print("  Diff too small — likely an empty or non-code change.")
         return None
 
@@ -110,11 +111,11 @@ def generate_tests_from_diff(diff):
     """
     try:
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=LLM_MODEL,
             messages=[
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=1000
+            max_tokens=LLM_MAX_TOKENS
         )
 
         # Extract just the text from the response

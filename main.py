@@ -2,6 +2,7 @@ import os
 import logging
 from dotenv import load_dotenv
 from agent import get_open_prs, print_pr_summary, get_pr_diff,generate_tests_from_diff,post_pr_comment, already_commented, save_tests_to_file
+from config import GITHUB_OWNER, GITHUB_REPO
 
 load_dotenv()
 
@@ -20,8 +21,8 @@ logger = logging.getLogger(__name__)
 def main():
     logger.info("QA Agent starting...")
 
-    owner = "ideedestiny"
-    repo = "qa-agent-test"
+    owner = GITHUB_OWNER
+    repo = GITHUB_REPO
 
     # Get list of open PRs
     logger.info(f"Fetching open PRs for {owner}/{repo}...")
