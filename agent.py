@@ -40,7 +40,7 @@ def get_open_prs(owner, repo):
     prs = response.json()
     return prs
 
-
+# Fetches the raw diff for a specific PR using GitHub's diff Accept header
 def get_pr_diff(owner, repo, pr_number):
     diff_headers = {
         "Authorization": f"token {GITHUB_TOKEN}",
@@ -72,19 +72,6 @@ def get_pr_diff(owner, repo, pr_number):
         return None
 
     return response.text
-
-def print_pr_summary(prs):
-    # Handle the case where no PRs were found
-    if not prs:
-        print("No PRs found.")
-        return
-
-    # Loop through each PR and print key details
-    for pr in prs:
-        print(f"PR #{pr['number']}: {pr['title']}")
-        print(f"  Author: {pr['user']['login']}")
-        print(f"  URL: {pr['html_url']}")
-        print()
 
 
 def generate_tests_from_diff(diff):
@@ -125,7 +112,7 @@ def generate_tests_from_diff(diff):
         tests = response.choices[0].message.content
 
     except Exception as e:
-    # Catches any OpenAI API error — rate limits, timeouts, invalid requests
+        # Catches any OpenAI API error — rate limits, timeouts, invalid requests
         logger.error(f"  LLM API error: {e}")
         return None
 
@@ -141,10 +128,9 @@ def generate_tests_from_diff(diff):
 
 
 def post_pr_comment(owner, repo, pr_number, comment_body):
-# This endpoint is for issues/PR comments
+    # This endpoint is for issues/PR comments
     url = f"https://api.github.com/repos/{owner}/{repo}/issues/{pr_number}/comments"
 
-    # The body of our POST request
     # We wrap the tests in markdown code blocks so they render nicely
     payload = {
         "body": f"## 🤖 QA Agent — Auto-generated Pytest Tests\n\n```python\n{comment_body}\n```"
