@@ -69,18 +69,11 @@ on diff clarity. Ongoing improvement focus is prompt quality and diff filtering.
 
 ## Project structure
 
-​```text
-qa-agent/
-├── agent.py          # All GitHub and LLM functions
-├── main.py           # Pipeline orchestration
-├── config.py         # Centralised settings
-├── tests/
-│   └── test_agent.py # Unit tests with mocking
-├── assets/           # Screenshots for README
-├── .env.example      # Token template
-└── DEVLOG.md         # Weekly build log
-​```
-
-
-
-
+- `agent.py` — All GitHub and LLM functions
+- `main.py` — Pipeline orchestration  
+- `config.py` — Centralised settings
+- `tests/test_agent.py` — Unit tests with mocking
+- `assets/` — Screenshots for README
+- `.env.example` — Token template
+- `DEVLOG.md` — Weekly build log
+​
