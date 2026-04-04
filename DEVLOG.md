@@ -1,3 +1,17 @@
+## Live System Observations
+
+- PRs processed: ~10 (microsoft/vscode run)
+- Comments posted: 8
+- Reactions received from engineers: yes (merges)
+- PRs merged after comment: several
+- Comments assessed as relevant: 3-4 (honest estimate)
+
+Notes:
+- Most TypeScript PRs skipped correctly — Python filter working
+- Large diffs truncated — some context lost, affects test quality
+- Best outputs came from small focused diffs (under 200 lines)
+- Generic outputs on large truncated diffs — known limitation
+
 # QA Agent — Dev Log
 
 ## Week 3 (Mar 31 – Apr 4)

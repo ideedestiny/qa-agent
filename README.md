@@ -1,73 +1,86 @@
-# QA Agent
+# QA Agent 🤖
 
 An agentic Python tool that watches GitHub repositories for new pull requests,
-
 reads the code diff, and automatically generates Pytest test cases using an LLM.
+Generated tests are posted directly as a comment on the PR — before a human reviewer
+even opens it.
 
-The generated tests are posted directly as a comment on the PR.
-
-
-## What it does
-
-1\. Connects to the GitHub API and fetches open pull requests
-
-2\. Reads the raw diff for each unprocessed PR
-
-3\. Skips PRs with no Python changes
-
-4\. Sends the diff to GPT-4o-mini with a QA engineering prompt
-
-5\. Generates self-contained, runnable Pytest tests
-
-6\. Posts the tests as a formatted comment on the PR
-
-7\. Tracks which PRs have been processed to avoid duplicates
-
+![PR Comment](assets/pr_comment.png)
 
 ## Why this exists
 
-In regulated industries and high-velocity engineering teams, every code change
+In high-velocity engineering teams and regulated industries, every code change needs
+test coverage. Manual test writing is slow and inconsistent. This agent automates the
+first layer of QA — generating a test scaffold automatically on every new PR.
 
-needs test coverage. This agent automates the first layer of that process —
+Inspired by how companies like GitHub and Google trigger automated checks on every
+pull request before human review begins.
 
-generating a test scaffold before a human reviewer even opens the PR.
+## How it works
 
+1. Connects to the GitHub API and fetches all open pull requests
+2. Skips PRs it has already commented on — no duplicates
+3. Skips diffs with no Python files — no wasted LLM calls
+4. Truncates diffs over 10,000 characters — controls cost and context limits
+5. Sends the diff to GPT-4o-mini with a QA engineering prompt
+6. Strips preamble and markdown from LLM output — runnable tests only
+7. Saves generated tests to generated_tests/test_pr_N.py
+8. Posts tests as a formatted comment on the PR
+
+## Tests passing
+
+![Pytest Output](assets/pytest_output.png)
+
+## Tested against real repos
+
+Pointed at `microsoft/vscode` — one of the most active open source repositories
+in the world. The agent processed live PRs and posted comments that were seen
+and reacted to by Microsoft engineers.
+
+
+## Field testing
+
+Run against `microsoft/vscode` with 10+ PRs processed in a single session.
+
+- Comments posted on live PRs, seen and reacted to by Microsoft engineers
+- Most TypeScript PRs correctly filtered out — Python-only processing working
+- Large diffs truncated at 10,000 characters — affects test depth on big PRs
+- Best results on small, focused diffs with clear logic changes
+
+Honest assessment: outputs range from genuinely useful to generic depending
+on diff clarity. Ongoing improvement focus is prompt quality and diff filtering.
 
 ## Tech stack
 
-\- Python 3.12
-
-\- GitHub REST API
-
-\- OpenAI API (gpt-4o-mini)
-
-\- Pytest
-
-\- python-dotenv
+- Python 3.12
+- GitHub REST API
+- OpenAI API (gpt-4o-mini)
+- Pytest + unittest.mock
+- python-dotenv
 
 ## Setup
 
-1\. Clone the repo
+1. Clone the repo
+2. Create a virtual environment: `uv venv && source .venv/bin/activate`
+3. Install dependencies: `uv add requests pytest python-dotenv openai`
+4. Copy `.env.example` to `.env` and add your tokens
+5. Update `config.py` with your target repo
+6. Run: `python main.py`
 
-2\. Create a virtual environment: `uv venv`
+## Project structure
 
-3\. Install dependencies: `uv add requests pytest python-dotenv openai`
+​```text
+qa-agent/
+├── agent.py          # All GitHub and LLM functions
+├── main.py           # Pipeline orchestration
+├── config.py         # Centralised settings
+├── tests/
+│   └── test_agent.py # Unit tests with mocking
+├── assets/           # Screenshots for README
+├── .env.example      # Token template
+└── DEVLOG.md         # Weekly build log
+​```
 
-4\. Copy `.env.example` to `.env` and add your tokens
-
-5\. Run: `python main.py`
-
-
-
-\## Project structure
-
-
-
-\- `main.py` — orchestrates the pipeline
-
-\- `agent.py` — all GitHub and LLM functions
-
-\- `generated\_tests/` — output directory, not tracked in git
 
 
 
