@@ -48,7 +48,7 @@ def main():
         # Fetch the diff
         diff = get_pr_diff(owner, repo, pr_number)
         if not diff:
-            logger.info(f"  Could not fetch diff. Skipping.\n")
+            logger.warning(f"  Could not fetch diff. Skipping.\n")
             continue
 
         # Generate tests
@@ -57,7 +57,7 @@ def main():
         save_tests_to_file(pr_number, tests)
         # Skip if LLM returned nothing
         if not tests:
-            logger.info(f"  No tests generated. Skipping.\n")
+            logger.warning(f"  No tests generated. Skipping.\n")
             continue
 
         # Post comment

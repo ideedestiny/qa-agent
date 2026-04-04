@@ -3,7 +3,8 @@ import requests
 from dotenv import load_dotenv
 from openai import OpenAI
 from config import LLM_MODEL, LLM_MAX_TOKENS, MAX_DIFF_SIZE, MIN_DIFF_SIZE
-
+import logging
+logger = logging.getLogger(__name__)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -31,7 +32,7 @@ def get_open_prs(owner, repo):
     # Check if the request failed
     # 200 means success, anything else is an error
     if response.status_code != 200:
-        print(f"Error: {response.status_code} - {response.text}")
+        logger.error(f"Error: {response.status_code} - {response.text}")
         return []
 
     # Convert the response from raw text to a Python list of dictionaries
@@ -51,23 +52,23 @@ def get_pr_diff(owner, repo, pr_number):
 
     # Check if the request failed
     if response.status_code != 200:
-        print(f"Error fetching diff: {response.status_code}")
+        logger.error(f"Error fetching diff: {response.status_code}")
         return None
 
     # Reject diffs that are too large — protects against token overuse
     if len(response.text) > MAX_DIFF_SIZE:
-        print("  Diff too large, truncating to 10000 characters.")
+        logger.warning("  Diff too large, truncating to 10000 characters.")
         return response.text[:10000]
 
 
     # Reject diffs with no meaningful content
     if len(response.text.strip()) < MIN_DIFF_SIZE:
-        print("  Diff too small — likely an empty or non-code change.")
+        logger.warning("  Diff too small — likely an empty or non-code change.")
         return None
 
     # Skip non-Python files — no point generating Pytest tests for markdown
     if ".py" not in response.text:
-        print("  No Python files in diff. Skipping.")
+        logger.info("  No Python files in diff. Skipping.")
         return None
 
     return response.text
@@ -125,7 +126,7 @@ def generate_tests_from_diff(diff):
 
     except Exception as e:
     # Catches any OpenAI API error — rate limits, timeouts, invalid requests
-        print(f"  LLM API error: {e}")
+        logger.error(f"  LLM API error: {e}")
         return None
 
     # Remove any lines before the first 'import' or 'def' — LLM preamble
@@ -154,11 +155,11 @@ def post_pr_comment(owner, repo, pr_number, comment_body):
 
     # 201 means "created successfully" — different from 200
     if response.status_code == 201:
-        print(f"Comment posted successfully!")
-        print(f"View it at: {response.json()['html_url']}")
+        logger.info(f"Comment posted successfully!")
+        logger.info(f"View it at: {response.json()['html_url']}")
         return True
     else:
-        print(f"Error posting comment: {response.status_code} - {response.text}")
+        logger.error(f"Error posting comment: {response.status_code} - {response.text}")
         return False
 
 def already_commented(owner, repo, pr_number):
@@ -189,7 +190,7 @@ def save_tests_to_file(pr_number, tests):
     with open(filename, "w") as f:
         f.write(tests)
 
-    print(f"  Tests saved to {filename}")
+    logger.info(f"  Tests saved to {filename}")
     return filename
 
 
